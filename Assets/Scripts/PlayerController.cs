@@ -2,35 +2,42 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody))]
+
 public class PlayerController : MonoBehaviour
 {
-    private Rigidbody _rb;
+    private Transform tr;
+    private Rigidbody rb;
     private Animator _Planim;
+    private LayerMask chGround;
     private Vector3 Axis, Cursor;
     public  int sp;
-    private bool isStand, isRun;
+    private float grRadius = 2; 
+    private bool isStand, isRun, Jumped, CheckGround;
 
     private void Awake()
     {
-        _rb = GetComponent<Rigidbody>();
+        tr = GetComponent<Transform>();
+        rb = GetComponent<Rigidbody>();
         _Planim = GetComponent<Animator>();
+        chGround = GameObject.FindGameObjectWithTag("Ground").layer;
 
-        isStand = false;
+        isStand = true;
+        isRun = false;
+        Jumped = false;
     }
     private void Update()
     {
-        Axis = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+        Axis = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Jump"), Input.GetAxis("Vertical"));
 
         isStand = Axis.magnitude == 0;
         if (!isStand)
-        {
-            
-            isRun = true;
+        {           
             Move();
         }
         else
         {
+            _Planim.SetBool("isRun", false);
+            _Planim.SetBool("isStand", true);
             isStand = true;
             isRun = false;
         }
@@ -38,11 +45,14 @@ public class PlayerController : MonoBehaviour
     }
 
 
-
+   
+    
     void Move()
     {
-        //          _Planim.SetBool("isRunnin", true);
+        isRun = true;
+        _Planim.SetBool("isRun", true);
+        _Planim.SetBool("isStand", false);
+        rb.velocity = Axis * sp * Time.deltaTime;
         
-        _rb.velocity = Axis * sp * Time.deltaTime;
     }
 }
