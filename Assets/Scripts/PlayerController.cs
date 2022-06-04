@@ -12,7 +12,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 Axis, Cursor;
     public  int sp;
     private float grRadius = 2; 
-    private bool isStand, isRun, Jumped, CheckGround;
+    private bool isStand, isWalk, isRun, Jumped, CheckGround;
 
     private void Awake()
     {
@@ -22,6 +22,7 @@ public class PlayerController : MonoBehaviour
         chGround = GameObject.FindGameObjectWithTag("Ground").layer;
 
         isStand = true;
+        isWalk = false;
         isRun = false;
         Jumped = false;
     }
@@ -31,14 +32,18 @@ public class PlayerController : MonoBehaviour
 
         isStand = Axis.magnitude == 0;
         if (!isStand)
-        {           
+        {
+            
             Move();
+            
         }
         else
         {
             _Planim.SetBool("isRun", false);
+            _Planim.SetBool("isWalk", false);
             _Planim.SetBool("isStand", true);
             isStand = true;
+            isWalk = false;
             isRun = false;
         }
         
@@ -49,10 +54,23 @@ public class PlayerController : MonoBehaviour
     
     void Move()
     {
-        isRun = true;
-        _Planim.SetBool("isRun", true);
+         isWalk = true;
+        _Planim.SetBool("isWalk", true);
+        _Planim.SetBool("isRun", false);
         _Planim.SetBool("isStand", false);
         rb.velocity = Axis * sp * Time.deltaTime;
-        
+        if (Input.GetKey(KeyCode.C) && !isWalk && !isRun)
+        {
+            Run();
+        }
+
+    }
+    void Run()
+    {
+        isRun = true;
+        _Planim.SetBool("isRun", true);
+        _Planim.SetBool("isWalk", false);
+        _Planim.SetBool("isStand", false);
+        rb.AddForce(Axis, ForceMode.Impulse);
     }
 }
