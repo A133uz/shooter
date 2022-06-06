@@ -5,46 +5,54 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    private Transform tr;
+    
     private Rigidbody rb;
+    
+    private Transform chGround;
+
     private Animator _Planim;
-    private LayerMask chGround;
-    private Vector3 Axis, Cursor;
-    public  int sp;
+    public LayerMask whatisGround;
+    private Vector3 Axis;
+
+    public  int sp, runSpeed;
     private float grRadius = 2; 
-    private bool isStand, isWalk, isRun, Jumped, CheckGround;
+    private bool isStand, isWalk, isRun, Jumped, isGr;
 
     private void Awake()
     {
-        tr = GetComponent<Transform>();
+        chGround = transform.GetChild(3).GetComponent<Transform>();
         rb = GetComponent<Rigidbody>();
         _Planim = GetComponent<Animator>();
-        chGround = GameObject.FindGameObjectWithTag("Ground").layer;
+        
 
         isStand = true;
         isWalk = false;
         isRun = false;
         Jumped = false;
     }
-    private void Update()
+    protected void FixedUpdate()
     {
-        Axis = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Jump"), Input.GetAxis("Vertical"));
-
+        Axis = transform.right * Input.GetAxis("Horizontal") + Input.GetAxis("Vertical") * transform.forward; 
+        isGr = Physics.CheckSphere(chGround.position, grRadius, whatisGround);
         isStand = Axis.magnitude == 0;
-        if (!isStand)
+        if (!isStand && isGr)
         {
             
             Move();
             
+           
         }
+        
         else
         {
-            _Planim.SetBool("isRun", false);
-            _Planim.SetBool("isWalk", false);
-            _Planim.SetBool("isStand", true);
             isStand = true;
             isWalk = false;
             isRun = false;
+            _Planim.SetBool("isWalk", isWalk);
+            _Planim.SetBool("isStand", isStand);
+            _Planim.SetBool("isRun", isRun);
+
+
         }
         
     }
@@ -55,22 +63,24 @@ public class PlayerController : MonoBehaviour
     void Move()
     {
          isWalk = true;
-        _Planim.SetBool("isWalk", true);
-        _Planim.SetBool("isRun", false);
-        _Planim.SetBool("isStand", false);
-        rb.velocity = Axis * sp * Time.deltaTime;
-        if (Input.GetKey(KeyCode.C) && !isWalk && !isRun)
+        _Planim.SetBool("isWalk", isWalk);
+        _Planim.SetBool("isStand", isStand);
+        rb.MovePosition(transform.position + Axis * sp * Time.deltaTime);
+        if (Input.GetKey(KeyCode.LeftShift) && !isRun)
         {
+            isWalk = false;
             Run();
         }
-
     }
+
     void Run()
     {
+        
         isRun = true;
-        _Planim.SetBool("isRun", true);
-        _Planim.SetBool("isWalk", false);
-        _Planim.SetBool("isStand", false);
-        rb.AddForce(Axis, ForceMode.Impulse);
+        _Planim.SetBool("isRun", isRun);
+        _Planim.SetBool("isWalk", isWalk);
+        _Planim.SetBool("isStand", isStand);
+        rb.velocity = -transform.position + Axis * runSpeed * Time.deltaTime;
     }
+   
 }
